@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tt-badger"
-version = "0.1.0"
+version = "0.1.1"
 description = "GitHub Actions badge picker for tt-metal workflows"
 readme = "README.md"
 requires-python = ">=3.8"
