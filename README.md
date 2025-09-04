@@ -2,12 +2,7 @@
   <img src="logo.png" alt="tt-badger logo" width="180" />
 </p>
 
-Generate GitHub Actions badge Markdown for `tenstorrent/tt-metal` workflows.
-
-- Numbering: 1–9, with 0 mapped to the last item (10th)
-- Instant toggling: press digits to toggle; Enter to finish
-- Persists selection in `~/.tt-badges.json` unless `--select` is provided
-- Always includes `?branch=<branch>` in `badge.svg` URLs
+Generate GitHub Actions badge Markdown for `tenstorrent/tt-metal` workflows and optionally run the tests.
 
 ## Install
 
