@@ -47,6 +47,35 @@ Example output (Markdown):
 
 Requires `gh` installed and authenticated (`gh auth login`) to run workflows.
 
+### Install GitHub CLI (gh)
+
+macOS:
+
+```
+brew install gh
+```
+
+Linux (Debian/Ubuntu):
+
+```
+type -p curl >/dev/null || sudo apt update && sudo apt install -y curl
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+  sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+  sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update && sudo apt install -y gh
+```
+
+Linux (Fedora/RHEL/CentOS):
+
+```
+sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+sudo dnf install -y gh
+```
+
+Then authenticate: `gh auth login`
+
 ## Development
 
 - Editable install: `pip install -e .`
