@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Compatibility wrapper to run the packaged CLI.
+
+Allows running from source without installation by adding `src/` to sys.path.
+"""
+
+try:
+    from tt_badger.cli import main
+except ImportError:  # running from a checkout without install
+    import os
+    import sys as _sys
+
+    _here = os.path.dirname(os.path.abspath(__file__))
+    _src = os.path.join(_here, "src")
+    if os.path.isdir(_src) and _src not in _sys.path:
+        _sys.path.insert(0, _src)
+    from tt_badger.cli import main
+
+
+if __name__ == "__main__":
+    main()
