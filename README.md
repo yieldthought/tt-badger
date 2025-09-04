@@ -2,8 +2,6 @@
   <img src="logo.png" alt="tt-badger logo" width="180" />
 </p>
 
-# tt-badger
-
 Generate GitHub Actions badge Markdown for `tenstorrent/tt-metal` workflows.
 
 - Numbering: 1–9, with 0 mapped to the last item (10th)
