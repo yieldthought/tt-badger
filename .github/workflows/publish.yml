@@ -1,6 +1,9 @@
 name: Publish to PyPI
 
 on:
+  push:
+    tags:
+      - 'v*'
   release:
     types: [published]
   workflow_dispatch: {}
@@ -30,16 +33,7 @@ jobs:
         run: |
           python -m build --sdist --wheel
 
-      - name: Publish to PyPI (OIDC trusted publisher)
-        if: ${{ secrets.PYPI_API_TOKEN == '' }}
+      - name: Publish to PyPI (OIDC Trusted Publishing)
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
-
-      - name: Publish to PyPI (API token)
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist
-          password: ${{ secrets.PYPI_API_TOKEN }}
-

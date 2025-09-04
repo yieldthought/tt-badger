@@ -47,17 +47,8 @@ Example output (Markdown):
 
 ## Release (CI to PyPI)
 
-- This repo includes GitHub Actions to publish:
-  - `Publish to TestPyPI`: on pre-releases (or manual dispatch)
-  - `Publish to PyPI`: on published GitHub Releases (or manual dispatch)
-
-- Recommended: enable PyPI Trusted Publishing (OIDC) for the `tt-badger` project.
-  - Configure the project on PyPI/TestPyPI to trust this GitHub repo.
-  - The workflows will authenticate via OIDC (no token needed).
-
-- Alternative: use API tokens (if not using OIDC):
-  - Add repo secrets `PYPI_API_TOKEN` and/or `TEST_PYPI_API_TOKEN`.
-
+- This repo publishes to PyPI via GitHub Actions using PyPI Trusted Publishing (OIDC) only — no secrets required.
+- On PyPI, add a Trusted Publisher for this repo with workflow path `.github/workflows/publish.yml`.
 - To release:
   1. Bump `__version__` in `src/tt_badger/__init__.py` and `pyproject.toml`.
   2. Create a Git tag like `v0.1.0` and draft a GitHub Release.
