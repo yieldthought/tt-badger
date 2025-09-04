@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="tt-badger logo" width="180" />
+</p>
+
 # tt-badger
 
 Generate GitHub Actions badge Markdown for `tenstorrent/tt-metal` workflows.
