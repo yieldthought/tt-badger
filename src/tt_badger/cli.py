@@ -3,6 +3,8 @@ from pathlib import Path
 import argparse
 import json
 import sys
+import shutil
+import subprocess
 
 REPO = "tenstorrent/tt-metal"
 STATE_FILE = Path.home() / ".tt-badges.json"
@@ -117,18 +119,133 @@ def read_single_key():
         return "\n" if ch == "\r" else ch
 
 
+def read_line_with_esc(prompt: str):
+    """Prompt for a line; allow Esc to cancel. Returns str or None.
+
+    Provides minimal in-place editing: backspace support and immediate cancel
+    on Esc. Falls back to input() on non-TTY.
+    """
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        try:
+            return input(prompt).strip()
+        except EOFError:
+            return None
+
+    try:
+        import msvcrt  # Windows
+
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        buf = []
+        while True:
+            ch = msvcrt.getwch()
+            if ch in ("\r", "\n"):
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+                return "".join(buf).strip()
+            if ch == "\x1b":  # ESC
+                sys.stdout.write("\nAborted.\n")
+                sys.stdout.flush()
+                return None
+            if ch in ("\x08", "\b"):  # backspace
+                if buf:
+                    buf.pop()
+                    sys.stdout.write("\b \b")
+                    sys.stdout.flush()
+                continue
+            # add regular character
+            buf.append(ch)
+            sys.stdout.write(ch)
+            sys.stdout.flush()
+    except ImportError:
+        import termios, tty  # POSIX
+
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd)
+        sys.stdout.write(prompt)
+        sys.stdout.flush()
+        buf = []
+        try:
+            tty.setraw(fd)
+            while True:
+                ch = sys.stdin.read(1)
+                if ch == "\r" or ch == "\n":
+                    sys.stdout.write("\n")
+                    sys.stdout.flush()
+                    return "".join(buf).strip()
+                if ch == "\x1b":  # ESC
+                    sys.stdout.write("\nAborted.\n")
+                    sys.stdout.flush()
+                    return None
+                if ch in ("\x7f", "\b"):  # backspace
+                    if buf:
+                        buf.pop()
+                        sys.stdout.write("\b \b")
+                        sys.stdout.flush()
+                    continue
+                # add regular character
+                buf.append(ch)
+                sys.stdout.write(ch)
+                sys.stdout.flush()
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old)
+
+
 def interactive_toggle(branch, selected):
     print_menu(branch, selected)
     while True:
         ch = read_single_key()
         if ch == "\n":  # Enter
             break
+        if ch == "\x1b":  # ESC
+            return None
         idx = digit_to_index(ch)
         if idx is not None:
             selected[idx] = not selected[idx]
             print_menu(branch, selected)
         # ignore other keys
     return selected
+
+
+def run_selected_workflows(repo: str, workflow_files, branch: str):
+    """Attempt to dispatch selected GitHub Actions workflows via gh CLI.
+
+    Requires GitHub CLI (`gh`) and that the user is authenticated.
+    """
+    gh = shutil.which("gh")
+    if not gh:
+        print("'gh' CLI not found. Install from https://cli.github.com and run 'gh auth login'.")
+        return
+
+    # Optional: check auth status
+    try:
+        subprocess.run([gh, "auth", "status"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+    ok = 0
+    fail = 0
+    for wf in workflow_files:
+        cmd = [gh, "workflow", "run", wf, "-R", repo, "--ref", branch]
+        print(f"Dispatching '{wf}' on {repo}@{branch}...")
+        try:
+            res = subprocess.run(cmd, check=False, capture_output=True, text=True)
+            if res.returncode == 0:
+                ok += 1
+            else:
+                fail += 1
+                if res.stdout:
+                    print(res.stdout.strip())
+                if res.stderr:
+                    print(res.stderr.strip())
+        except FileNotFoundError:
+            print("'gh' CLI not found during execution.")
+            fail += 1
+        except Exception as e:
+            print(f"Failed to dispatch {wf}: {e}")
+            fail += 1
+
+    print(f"Done. Dispatched: {ok} succeeded, {fail} failed.")
 
 
 def main():
@@ -147,7 +264,9 @@ def main():
 
     branch = args.branch
     while not branch:
-        branch = input("Enter branch name (e.g., main or feature/foo): ").strip()
+        branch = read_line_with_esc("Enter branch name (e.g., main or feature/foo) [Esc to cancel]: ")
+        if branch is None:
+            return
 
     if args.select is not None:
         selected = DEFAULT_SELECTED.copy()
@@ -157,6 +276,9 @@ def main():
         if sys.stdin.isatty() and sys.stdout.isatty():
             try:
                 selected = interactive_toggle(branch, selected)
+                if selected is None:
+                    print("Aborted.")
+                    return
             except KeyboardInterrupt:
                 print("\nAborted.")
                 return
@@ -164,15 +286,23 @@ def main():
     save_selection(selected)
 
     any_printed = False
+    selected_workflows = []
     for (title, wf), is_on in zip(WORKFLOWS, selected):
         if is_on:
             any_printed = True
             print(build_badge(REPO, wf, title, branch))
+            selected_workflows.append(wf)
     if not any_printed:
         print("No badges selected. Nothing to output.")
     print()
 
+    # Ask to start selected workflows via GitHub CLI
+    if selected_workflows and sys.stdin.isatty() and sys.stdout.isatty():
+        print("Start selected workflows on GitHub now? [y/N]")
+        ch = read_single_key()
+        if ch and ch.lower() == "y":
+            run_selected_workflows(REPO, selected_workflows, branch)
+
 
 if __name__ == "__main__":
     main()
-
