@@ -260,6 +260,11 @@ def main():
         "--select",
         help="Digits (1–9, 0 for last) to pre-toggle and skip interaction.",
     )
+    parser.add_argument(
+        "--run",
+        action="store_true",
+        help="After printing, dispatch selected workflows on the branch via GitHub CLI (gh)",
+    )
     args = parser.parse_args()
 
     branch = args.branch
@@ -296,12 +301,15 @@ def main():
         print("No badges selected. Nothing to output.")
     print()
 
-    # Ask to start selected workflows via GitHub CLI
-    if selected_workflows and sys.stdin.isatty() and sys.stdout.isatty():
-        print("Start selected workflows on GitHub now? [y/N]")
-        ch = read_single_key()
-        if ch and ch.lower() == "y":
+    # Start selected workflows via GitHub CLI
+    if selected_workflows:
+        if args.run:
             run_selected_workflows(REPO, selected_workflows, branch)
+        elif sys.stdin.isatty() and sys.stdout.isatty():
+            print("Start selected workflows on GitHub now? [y/N]")
+            ch = read_single_key()
+            if ch and ch.lower() == "y":
+                run_selected_workflows(REPO, selected_workflows, branch)
 
 
 if __name__ == "__main__":

@@ -19,9 +19,15 @@ This installs the `tt-badger` command.
 - Interactive mode:
   - `tt-badger --branch main`
   - Press 0–9 to toggle workflows; press Enter to print selected badges
+  - Press Esc at the menu to cancel and exit
 
 - Non-interactive pre-selection (skips the menu):
   - `tt-badger -b main --select 1290`  (toggles 1, 2, 9, and last)
+  - Press Esc at the branch prompt to cancel
+
+- Auto-dispatch selected workflows (requires GitHub CLI):
+  - `tt-badger -b my-feature --select 19 --run`
+  - Uses `gh workflow run <workflow> -R tenstorrent/tt-metal --ref <branch>` for each selected workflow
 
 If no `--select` is given, the previously saved selection (from
 `~/.tt-badges.json`) is used as a starting point.
@@ -37,6 +43,9 @@ Example output (Markdown):
 
 - `-b, --branch <name>`: Branch name (e.g., `main` or `feature/foo`). Required.
 - `-s, --select <digits>`: Digits `1–9` (and `0` for the last) to pre-toggle and skip interaction.
+- `--run`: After printing, dispatch selected workflows via the GitHub CLI (`gh`).
+
+Requires `gh` installed and authenticated (`gh auth login`) to run workflows.
 
 ## Development
 
