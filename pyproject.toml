@@ -1,5 +1,4 @@
-[
-build-system]
+[build-system]
 requires = ["hatchling>=1.24.2"]
 build-backend = "hatchling.build"
 
@@ -36,11 +35,10 @@ tt-badger = "tt_badger.cli:main"
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "/src",
-  "/README.md",
-  "/LICENSE",
+  "src/**",
+  "README.md",
+  "LICENSE",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tt_badger"]
-
