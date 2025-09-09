@@ -18,8 +18,8 @@ WORKFLOWS = [
     ("(T3K) T3000 frequent tests",           "t3000-frequent-tests.yaml"),
     ("(T3K) T3000 perplexity tests",         "t3000-perplexity-tests.yaml"),
     ("(T3K) T3000 unit tests",               "t3000-unit-tests.yaml"),
-    ("(TG) TG DeepSeek tests",               "tg-deepseek-tests.yaml"),
-    ("(TG) TG demo all-post-commit tests",   "tg-demo-all-post-commit.yaml"),
+    ("(Galaxy) DeepSeek tests",              "galaxy-deepseek-tests.yaml"),
+    ("(Galaxy) Quick",                       "galaxy-quick.yaml"),
 ]
 
 # Defaults: first two ON, others OFF
